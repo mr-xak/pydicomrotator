@@ -164,3 +164,6 @@ CMakeSettings.json
 .vs/
 .vscode/
 .idea/
+
+out/
+build/
