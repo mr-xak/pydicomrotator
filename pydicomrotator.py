@@ -9,6 +9,8 @@ from PIL import Image
 from pydicom._storage_sopclass_uids import SecondaryCaptureImageStorage
 from pydicom._uid_dict import UID_dictionary
 import uuid
+#from skimage.transform import resize
+#import matplotlib.pyplot as plt
 
 baseUID = '1.2.826.0.1.3680043.10.594'
 ImplementationClassUID = '2.25.229451600072090404564544894284998027172'
@@ -158,6 +160,20 @@ def runner(input : str,  target : str, dummy : bool):
 
     if dummy:
         createNewDataset(npData, dataMeta, target, template)
+    else:
+        npNewData = np.zeros((npData.shape[0], npData.shape[0], npData.shape[0]), dtype=npData.dtype)
+        for i in range(npData.shape[0]):
+            #npNewData[i, :, :] = resize(npData[i, :, :], (dataMeta['zLen'], dataMeta['zLen'], ))
+            npNewData[i, :, :] = Image.fromarray(npData[i, :, :]).resize((dataMeta['zLen'], dataMeta['zLen'], ))
+            # fig, ax = plt.subplots(ncols=2)
+            # ax[0].imshow(npData[i, :, :], plt.cm.bone)
+            # ax[1].imshow(npNewData[i, :, :], plt.cm.bone)
+            # plt.show()
+        dataMeta.update({'xLen': npData.shape[0], 'yLen': npData.shape[0], 
+                        'xSize': dataMeta['xSize'] * npData.shape[1] / npData.shape[0],
+                        'ySize': dataMeta['ySize'] * npData.shape[2] / npData.shape[0],
+        })
+        createNewDataset(npNewData, dataMeta, target, template)
     pass
 
 if __name__ == '__main__':
