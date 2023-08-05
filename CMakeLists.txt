@@ -1,15 +1,15 @@
 cmake_minimum_required (VERSION 3.0)
 
-project ("pydicomrotator" LANGUAGES Python)
+project ("pydicomrotator")
 
 find_package(Python COMPONENTS Interpreter REQUIRED)
 
-set(INPUT_DICOM_DIR "Input DICOM folder" CACHE PATH)
-set(TARGET_DICOM_DIR "Target DICOM folder" CACHE PATH)
-set(DUMMY_MODE "Use Dummy Mode" CACHE BOOL OFF)
+set(INPUT_DICOM_DIR "" CACHE PATH "Input DICOM folder")
+set(TARGET_DICOM_DIR "" CACHE PATH "Target DICOM folder")
+set(DUMMY_MODE OFF CACHE BOOL "Use DUMMY mode")
 
 if(DUMMY_MODE)
-add_custom_target(run1 ALL COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/pydicomrotator.py --input="${START_DICOM_DIR}" --target="${TARGET_DICOM_DIR}" --dummy=1)
+add_custom_target(run1 ALL COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/pydicomrotator.py --input="${INPUT_DICOM_DIR}" --target="${TARGET_DICOM_DIR}" --dummy=1)
 else()
-add_custom_target(run1 ALL COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/pydicomrotator.py --input="${START_DICOM_DIR}" --target="${TARGET_DICOM_DIR}" --dummy=0)
+add_custom_target(run1 ALL COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/pydicomrotator.py --input="${INPUT_DICOM_DIR}" --target="${TARGET_DICOM_DIR}" --dummy=0)
 endif()
