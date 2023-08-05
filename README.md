@@ -11,3 +11,14 @@ python pydicomrotator.py --input=D:\\inputDicomFolder --target=D:\\targetDicomFo
 * Option dummy=0 will resize each image (Num of slices, Rows, Columns) to (Num of slices, Num of slices, Num of slices) first and than store the resulted cube as separated images, PixelSpacing will be rescaled approprietly in each direction
 
 * Option dummy=1 will create Rows files each having [Num of slices, Columns] frame, PixelSpacing and SliceThickness are numerically overwritten.
+
+## Help
+```
+Usage: python -m pydicomrotator [OPTIONS]
+
+Options:
+  --input TEXT     Input DICOM folder
+  --target TEXT    Target DICOM folder
+  --dummy INTEGER  Dummy swaping axis or do numerical calculations
+  --help           Show this message and exit.
+```
