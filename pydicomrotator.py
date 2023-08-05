@@ -119,7 +119,7 @@ def extractFeatures(flD : pydicom.dataset.FileDataset) -> dict:
 @click.command()
 @click.option("--input", default="./input", help="Input DICOM folder")
 @click.option("--target", default="./target", help="Target DICOM folder")
-@click.option("--dummy", default=1, help="Dummy swaping axis or do numerical calculations")
+@click.option("--dummy", default=True, help="Dummy swaping axis or do numerical calculations")
 def runner(input : str,  target : str, dummy : bool):
     print("Dumping %s into %s" %(input, target, ))
     if '"' in input:

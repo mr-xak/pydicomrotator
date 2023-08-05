@@ -19,6 +19,6 @@ Usage: python -m pydicomrotator [OPTIONS]
 Options:
   --input TEXT     Input DICOM folder
   --target TEXT    Target DICOM folder
-  --dummy INTEGER  Dummy swaping axis or do numerical calculations
+  --dummy BOOLEAN  Dummy swaping axis or do numerical calculations
   --help           Show this message and exit.
 ```
