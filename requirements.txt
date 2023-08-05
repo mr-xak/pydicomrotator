@@ -1,3 +1,4 @@
 click
 pydicom
 numpy
+pillow
