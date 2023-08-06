@@ -171,8 +171,9 @@ def runner(input : str,  target : str, dummy : bool):
     target directory where the output will be saved
     :type target: str
     :param dummy: The `dummy` parameter is a boolean flag that determines whether to create a new
-    dataset or not. If `dummy` is `True`, a new dataset will be created using the `createNewDataset`
-    function. If `dummy` is `False`, the `npData` array will be resized
+    dataset dummy. If `dummy` is `True`, a new dataset will be created using the `createNewDataset`
+    function. If `dummy` is `False`, the data array will be resized first, and then `createNewDataset`
+    called with updated data and meta.
     :type dummy: bool
     """
     print("Dumping %s into %s" %(input, target, ))
