@@ -6,36 +6,58 @@ import random
 from pydicom.uid import UID
 from time import strftime, localtime
 from PIL import Image
-from pydicom._storage_sopclass_uids import SecondaryCaptureImageStorage
+#from pydicom._storage_sopclass_uids import SecondaryCaptureImageStorage
 from pydicom._uid_dict import UID_dictionary
 import uuid
 #from skimage.transform import resize
 #import matplotlib.pyplot as plt
 
-baseUID = '1.2.826.0.1.3680043.10.594'
 ImplementationClassUID = '2.25.229451600072090404564544894284998027172'
 
 def generateUID(_uuid=None):
-    """Returns a new DICOM UID based on a UUID, as specified in CP1156 (Final)."""
+    """
+    The function generates a new DICOM UID based on a UUID.
+    
+    :param _uuid: The `_uuid` parameter is an optional parameter that represents a UUID (Universally
+    Unique Identifier). If no value is provided for `_uuid`, a new UUID will be generated using the
+    `uuid.uuid1()` function
+    :return: a new DICOM UID based on a UUID.
+    """
     if _uuid is None:
         _uuid = uuid.uuid1()
     return "2.25.%i" % _uuid.int
 
 def getPDCMUID(name):
+    """
+    The function `getPDCMUID` returns the UID corresponding to a given name from the `UID_dictionary`.
+    
+    :param name: The `name` parameter is a string that represents the name of a DICOM UID
+    :return: the PDCM UID (Unique Identifier) associated with the given name.
+    """
     # print("{" + "\n".join("{}: {}".format(k, v) for k, v in dicom.UID.UID_dictionary.items()) + "}")
     return [k for k, v in UID_dictionary.items() if v[0] == name][0]
 
 def getEmptyDataset(filename : str, uid : pydicom.uid.UID):
+    """
+    The function `getEmptyDataset` creates an empty DICOM dataset with specified file meta information
+    and returns it.
+    
+    :param filename: The filename parameter is a string that represents the name of the file that you
+    want to create or modify. This file will be used to store the DICOM dataset
+    :type filename: str
+    :param uid: The `uid` parameter is a unique identifier for the SOP Instance. It is used to uniquely
+    identify a specific instance of a DICOM object (e.g., an image or a series)
+    :type uid: pydicom.uid.UID
+    :return: a pydicom.dataset.FileDataset object.
+    """
     file_meta = pydicom.dataset.Dataset()
-    #file_meta.MediaStorageSOPClassUID = UID('1.2.840.10008.5.1.4.1.1.2')
     file_meta.MediaStorageSOPClassUID = getPDCMUID("CT Image Storage")
     file_meta.MediaStorageSOPInstanceUID = uid
     file_meta.ImplementationClassUID = ImplementationClassUID
     file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
     #ds = pydicom.dataset.FileDataset(filename, {}, file_meta=file_meta, preamble="\0"*128)
     preamble=b"\x00" * 128
-    ds = pydicom.dataset.FileDataset(filename, {}, file_meta=file_meta, preamble=preamble)
-    return ds
+    return pydicom.dataset.FileDataset(filename, {}, file_meta=file_meta, preamble=preamble)
 
 def genNewUID() -> str:
     dtFormat = "%d%m%Y%H%M%S"
@@ -44,17 +66,31 @@ def genNewUID() -> str:
     return uid
 
 def createNewDataset(npData : np.ndarray, dataMeta : dict, target : str, template : pydicom.dataset.FileDataset) -> bool:
+    """
+    The function `createNewDataset` takes in a numpy array, metadata, target directory, and a template
+    DICOM file, and creates a new dataset by swapping axes, setting various DICOM attributes, and saving
+    the new dataset as DICOM files in the target directory.
+    
+    :param npData: The parameter `npData` is a NumPy array containing the image data
+    :type npData: np.ndarray
+    :param dataMeta: The `dataMeta` parameter is a dictionary that contains metadata information about
+    the dataset. It includes the following keys:
+    :type dataMeta: dict
+    :param target: The `target` parameter is the directory where the new dataset will be saved
+    :type target: str
+    :param template: The `template` parameter is an instance of the `pydicom.dataset.FileDataset` class.
+    It represents a DICOM file that will be used as a template for creating new DICOM files
+    :type template: pydicom.dataset.FileDataset
+    """
     if not os.path.isdir(target):
         os.mkdir(target)
     npNewData = npData.swapaxes(0, 2)
-    #npNewData = npNewData.swapaxes(0, 1)
-    #npNewData = npNewData.swapaxes(0, 2)
     npNewData = npNewData.swapaxes(1, 2)
     Rows = dataMeta['zLen']
     Cols = dataMeta['yLen']
     imgMax = dataMeta['xLen']
     spacing = [dataMeta['zSize'], dataMeta['ySize']]
-    uid = genNewUID()
+    #uid = genNewUID()
     print(npNewData.shape)
     #template.FrameOfReferenceUID = UID("%s.0" % (uid, ))
     #template.ReferencedImageSequence[0].ReferencedSOPInstanceUID = UID("%s.0" % (uid, ))
@@ -71,18 +107,10 @@ def createNewDataset(npData : np.ndarray, dataMeta : dict, target : str, templat
         template2.Columns = Cols
         template2.PixelSpacing = spacing
         template2.SliceThickness = dataMeta['xSize']
-        #template2.SOPClassUID = SecondaryCaptureImageStorage
-        #template.file_meta = getEmptyDataset(newName, UID("%s.%s" % (uid, str(i))))
-        #template2.FrameOfReferenceUID = UID("%s.0" % (uid, ))
-        #template2.FrameOfReferenceUID = "%s.%i" % (ptBaseUID, 0)
-    #template.ReferencedImageSequence[0].ReferencedSOPInstanceUID = UID("%s.0" % (uid, ))
         template2.SliceLocation = i * dataMeta['xSize']
         template2.ImagePositionPatient = [0.0, 0.0, i * dataMeta['xSize']]
-        #template2.PatientPosition = [0.0, 0.0, i * dataMeta['xSize']]
         template2.PatientPosition = template.PatientPosition
         template2.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-        #template2.SOPInstanceUID = UID("%s.%s" % (uid, str(i)))
-        #template2.SOPInstanceUID = getPDCMUID("CT Image Storage")
         template2.SOPInstanceUID = sopInstanceUID
         template2.ImageType = "ORIGINAL\SECONDARY\AXIAL"
         template2.SamplesPerPixel = 1
@@ -105,6 +133,18 @@ def createNewDataset(npData : np.ndarray, dataMeta : dict, target : str, templat
     pass
 
 def extractFeatures(flD : pydicom.dataset.FileDataset) -> dict:
+    """
+    The function `extractFeatures` takes a pydicom dataset as input and returns a dictionary containing
+    various extracted features from the dataset.
+    
+    :param flD: The parameter `flD` is a `pydicom.dataset.FileDataset` object. This object represents a
+    DICOM file and contains various attributes and methods to access and manipulate the data within the
+    file
+    :type flD: pydicom.dataset.FileDataset
+    :return: a dictionary containing various features extracted from the input pydicom dataset. The keys
+    of the dictionary represent the names of the features, and the values represent the corresponding
+    values extracted from the dataset.
+    """
     return { 
         'xLen' : int(flD.Rows), 
         'yLen': int(flD.Columns), 
@@ -114,13 +154,27 @@ def extractFeatures(flD : pydicom.dataset.FileDataset) -> dict:
         'slope': float(flD.RescaleSlope),
         'intercept': float(flD.RescaleIntercept),
         }
- 
 
 @click.command()
 @click.option("--input", default="./input", help="Input DICOM folder")
 @click.option("--target", default="./target", help="Target DICOM folder")
 @click.option("--dummy", default=True, help="Dummy swaping axis or do numerical calculations")
 def runner(input : str,  target : str, dummy : bool):
+    """
+    The `runner` function takes in an input directory containing DICOM files, sorts them based on their
+    z-coordinate, resizes the images, and creates a new dataset in the target directory.
+    
+    :param input: The `input` parameter is a string that represents the directory path where the DICOM
+    files are located. These DICOM files will be processed in the function
+    :type input: str
+    :param target: The `target` parameter in the `runner` function is a string that represents the
+    target directory where the output will be saved
+    :type target: str
+    :param dummy: The `dummy` parameter is a boolean flag that determines whether to create a new
+    dataset or not. If `dummy` is `True`, a new dataset will be created using the `createNewDataset`
+    function. If `dummy` is `False`, the `npData` array will be resized
+    :type dummy: bool
+    """
     print("Dumping %s into %s" %(input, target, ))
     if '"' in input:
         input = input.replace("\"", "")
@@ -134,7 +188,7 @@ def runner(input : str,  target : str, dummy : bool):
     for flN in os.listdir(input):
         flD = pydicom.dcmread(os.path.join(input, flN), force=True)
         if "SOPClassUID" not in flD:
-          continue
+            continue
         if (("CT Image Storage" in str(flD.SOPClassUID)) or ("1.2.840.10008.5.1.4.1.1.2" in str(flD.SOPClassUID))):
             if not hasattr(flD, 'TransferSyntaxUID'):
                 flD.TransferSyntaxUID = '1.2.840.10008.1.2'
